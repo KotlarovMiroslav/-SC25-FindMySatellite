@@ -1,0 +1,10 @@
+[project]
+name = "satellite_tracker"
+version = "0.1.0"
+description = "LiDAR-based satellite tracking system"
+authors = [{name = "Your Name"}]
+dependencies = ["numpy"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
