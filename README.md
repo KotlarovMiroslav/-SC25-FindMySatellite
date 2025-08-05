@@ -26,3 +26,8 @@ python scripts/run.py
 ```bash
 python -m unittest discover
 ```
+
+## cad 
+- version control via fusion
+- final .step files 
+- whole assembly as a step file
