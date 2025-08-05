@@ -1,109 +1,87 @@
-import numpy as np 
+import numpy as np
 import csv
 import matplotlib.pyplot as plt
-from Integrators import *
+from VerletIntegrator import Kepler_Verlet  
 
-# Parse a .csv file with satellite time, position and velocity (PVT) for plotting
-# Inputs:
-# - filename of the .csv file where the results are saved
-# NOTE: File structure is expected to be "Time (UTCG),x (km),y (km),z (km),vx (km/sec),vy (km/sec),vz (km/sec)"
-# Output:
-# It will return arrays of time, pos, vel as:
-# - time[ Npoints ]: time in [sec] from simulation start
-# - pos[ 3 ][ Npoints ]: 3D position in [km]
-# - vel[ 3 ][ Npoints ]: 3D velocity in [km/s]
-def parse_orbit_data( filename ):
+# --------------------------------------------------
+# Function to parse STK/GMAT output CSV file
+# --------------------------------------------------
+def parse_orbit_data(filename):
+    with open(filename, "r") as fp:
+        data = list(csv.reader(fp))
 
-    fp = open( filename , "r" )
+    header = data[0]
+    rows = data[1:]  # Skip header
 
-    if fp.readable( ):
-        data = csv.reader( fp )
-        lst = [ ]
-        for line in data:
-            lst.append( line )
-        ndata = len( lst ) - 1
+    n = len(rows)
+    time = np.zeros(n)
+    pos = np.zeros((3, n))
+    vel = np.zeros((3, n))
 
-        time = np.zeros( ndata )
-        pos = np.zeros( ( 3 , ndata ) )
-        vel = np.zeros( ( 3 , ndata ) )
+    for i, row in enumerate(rows):
+        time[i] = float(row[0])
+        pos[:, i] = list(map(float, row[1:4]))
+        vel[:, i] = list(map(float, row[4:7]))
 
-        for i in range( 0 , ndata ):
-            time[ i ] = float( lst[ i + 1 ][ 0 ] )
-            for j in range( 0 , 3 ):
-                pos[ j ][ i ] = float( lst[ i + 1 ][ j + 1 ] )
-                vel[ j ][ i ] = float( lst[ i + 1 ][ j + 4 ] )
-    else:
-        print( "Unreadable data, something's wrong with the file " + filename )
-    
     return time, pos, vel
 
+# --------------------------------------------------
+# Main Script
+# --------------------------------------------------
 if __name__ == "__main__":
-
-    # File simulated from GMAT
+    # Load STK/GMAT data
     file_name = "Satellite_PVT_GMAT.csv"
+    time, pos, vel = parse_orbit_data(file_name)
 
-    time , pos , vel = parse_orbit_data( file_name )
+    # Set initial conditions for integration
+    pos_0 = pos[:, 0]
+    vel_0 = vel[:, 0]
+    t_params = [time[0], time[-1], len(time)]
 
-    # Run the simulation with the same initial data
-    pos_0 = np.transpose( pos )[ 0 ] # Initial position [km]
-    vel_0 = np.transpose( vel )[ 0 ] # Initial velocity [km/sec]
-    t_params = [ time[ 0 ] , time[ -1 ] , 8641 ]
-    # CALL THE FUNCTION TO COMPUTE INTEGRATED SOLUTION
-    #t_RK, pos_RK, vel_RK = Kepler_RK4( pos_0 , vel_0 , t_params )
+    # Run Verlet integration
+    t_verlet, pos_verlet, vel_verlet = Kepler_Verlet(pos_0, vel_0, t_params)
 
-    # 3D Plot example
-    # Data for a three-dimensional line
-    ax = plt.axes( projection = "3d" )
-    ax.plot3D( pos[ 0 ] , pos[ 1 ] , pos[ 2 ] , "green" )
-    # UNCOMMENT TO PLOT INTEGRATED SOLUTION
-    #ax.plot3D( np.transpose( pos_RK )[ 0 ] , np.transpose( pos_RK )[ 1 ] , np.transpose( pos_RK )[ 2 ] , "red" )
-
-    plt.show( )
-
-    # 2D Plot example
-    fig, ax = plt.subplots()
-    ax.plot( time , pos[ 0 ] , color = "green" , linestyle = "dashed" , label = r"pos X STK" )
-    ax.plot( time , pos[ 1 ] , color = "red" , linestyle = "dashed" , label = r"pos Y STK" )
-    ax.plot( time , pos[ 2 ] , color = "blue" , linestyle = "dashed" , label = r"pos Z STK" )
-    # UNCOMMENT TO PLOT INTEGRATED SOLUTION
-    '''
-    ax.scatter( t_RK , np.transpose( pos_RK )[ 0 ] , color = "green" , label = r"pos X RK" )
-    ax.scatter( t_RK , np.transpose( pos_RK )[ 1 ] , color = "red" , label = r"pos Y RK" )
-    ax.scatter( t_RK , np.transpose( pos_RK )[ 2 ] , color = "blue" , label = r"pos Z RK" )
-    '''
-    ax.set_xlabel( r"Time [sec]" )
-    ax.set_ylabel( r"Position in [km]" )
-
-    ax.legend( loc = "upper right" )
-
-    #ax.set_ylim( 0.0 , pi/2.0 )
-    plt.grid( True )
-
-    #fig.savefig( "fig_name.pdf" , format = "pdf" )
-    
+    # --------------------------------------------------
+    # Plot 3D Orbit Comparison
+    # --------------------------------------------------
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot3D(pos[0], pos[1], pos[2], "green", label="STK")
+    ax.plot3D(pos_verlet[:, 0], pos_verlet[:, 1], pos_verlet[:, 2], "red", label="Verlet")
+    ax.set_title("3D Orbit Comparison")
+    ax.set_xlabel("X [km]")
+    ax.set_ylabel("Y [km]")
+    ax.set_zlabel("Z [km]")
+    ax.legend()
     plt.show()
 
-    # UNCOMMENT TO COMPARE ERROR WITH INTEGRATED SOLUTION
-    # Error between us and STK
-    '''
-    pos_err = np.zeros( len( pos_RK ) )
-    for i in range( 0 , len( pos_RK ) ):
-        pos_err[ i ] = np.sqrt( ( pos_RK[ i ][ 0 ] - pos[ 0 ][ i ] )**2.0 + ( pos_RK[ i ][ 1 ] - pos[ 1 ][ i ] )**2.0 + ( pos_RK[ i ][ 2 ] - pos[ 2 ][ i ] )**2.0 )
-        # We are computing sqrt( ( x_RK - x_R )^2 + ( y_RK - y_R )^2 + ( z_RK - z_R )^2 ) which is our error
-
-    # 2D Plot of error
+    # --------------------------------------------------
+    # Plot Position Components Over Time
+    # --------------------------------------------------
     fig, ax = plt.subplots()
-    ax.plot( time , pos_err , color = "blue" , linestyle = "solid" , label = r"pos error" )
-
-    ax.set_xlabel( r"Time [sec]" )
-    ax.set_ylabel( r"Error in [km]" )
-
-    ax.legend( loc = "upper right" )
-
-    #ax.set_ylim( 0.0 , pi/2.0 )
-    plt.grid( True )
-
-    #fig.savefig( "fig_name.pdf" , format = "pdf" )
-    
+    ax.plot(time, pos[0], "g--", label="X STK")
+    ax.plot(time, pos[1], "r--", label="Y STK")
+    ax.plot(time, pos[2], "b--", label="Z STK")
+    ax.plot(t_verlet, pos_verlet[:, 0], "g", label="X Verlet")
+    ax.plot(t_verlet, pos_verlet[:, 1], "r", label="Y Verlet")
+    ax.plot(t_verlet, pos_verlet[:, 2], "b", label="Z Verlet")
+    ax.set_title("Position Comparison: STK vs Verlet")
+    ax.set_xlabel("Time [sec]")
+    ax.set_ylabel("Position [km]")
+    ax.legend()
+    ax.grid(True)
     plt.show()
-    '''
+
+    # --------------------------------------------------
+    # Compute and Plot Position Error
+    # --------------------------------------------------
+    pos_error = np.linalg.norm(pos_verlet.T - pos, axis=0)
+
+    fig, ax = plt.subplots()
+    ax.plot(time, pos_error, color="purple", label="Position Error [km]")
+    ax.set_title("Position Error (Verlet vs STK)")
+    ax.set_xlabel("Time [sec]")
+    ax.set_ylabel("Error [km]")
+    ax.legend()
+    ax.grid(True)
+    plt.show()
