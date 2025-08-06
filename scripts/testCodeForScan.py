@@ -26,7 +26,7 @@ pwm.start(0)
 def set_angle(angle):
     duty = 1.5 + (angle / 180) * 10
     pwm.ChangeDutyCycle(duty)
-    time.sleep(0.3)
+    #time.sleep(0.1)
 
 def data_formatter(data_bytes):
     if isinstance(data_bytes, bytes):
@@ -66,18 +66,19 @@ def run_lidar():
                         curPos = 0
                     baseline = dataOutput[curPos]
                     diff = abs(reading - baseline)
-                    if diff > 40:
+                    if diff > 70:
                         searching = 0
                         poi = curPos
                         print(f"OBJECT DETECTED at {poi*5}°")
                     else:
                         curPos += 1
                 else:
-                    min_poi = max(poi - 2, 0)
-                    max_poi = min(poi + 2, len(dataOutput) - 1)
+                    min_poi = max(poi - 4, 0)
+                    max_poi = min(poi + 4, len(dataOutput) - 1)
                     baseline = dataOutput[curPos]
                     diff = abs(reading - baseline)
-                    if diff > 40:
+                    if diff > 70:
+                        print(f"Scan:{reading},Base: {baseline} ,Diff:{diff}")
                         poi = curPos
                         print(f"POI SHIFTED — New center: {poi*5}°")
                     curPos += 1
@@ -89,7 +90,7 @@ def run_lidar():
                 dataOutput.append(reading)
                 print(f"Scan@{curDeg}° = {reading}")
                 passedStep = 0
-                if curDeg >= 55:
+                if curDeg >= 60:
                     envScanned = 1
                     print("INITIAL SCAN COMPLETE — Entering Detection Mode")
 
@@ -97,7 +98,7 @@ def run_servo():
     global passedStep, lock, curDeg, searching
     try:
         while True:
-            for degree in range(0, 60, 5):
+            for degree in range(0, 65, 5):
                 with lock:
                     if searching == 0:
                         return
@@ -105,32 +106,61 @@ def run_servo():
                         pass
                 set_angle(degree)
                 curDeg = degree
-                time.sleep(0.3)
+                #time.sleep(0.1)
                 with lock:
                     passedStep = 1
-                time.sleep(0.1)
+                time.sleep(0.075)
     except KeyboardInterrupt:
         pwm.stop()
         GPIO.cleanup()
 
 def seekAndDestroy():
     global passedStep, lock, curDeg, searching, dataOutput, poi
+    #samePoiCounter = 0
+    #if (poi == lastPoi):
+        #if(samePoiCounter == 3):
+            #with lock:
+                #searching = 1
+                #pass
+        #samePoiCounter = samePoiCounter + 1
     while True:
         if searching == 0:
             print(f"TRACKING POI around {poi*5}°")
-            min_deg = max((poi * 5) - 10, 0)
-            max_deg = min((poi * 5) + 10, 60)
+            #lastPoi = poi
+            min_deg = max((poi * 5) -20, 0)
+            max_deg = min((poi * 5) + 20, 60)
+            for degree in range(max_deg + 1, min_deg, -5):
+                with lock:
+                    while passedStep != 0:
+                        pass
+                set_angle(degree)
+                curDeg = degree
+                #time.sleep(0.1)
+                with lock:
+                    passedStep = 1
+                    pass
+                time.sleep(0.045)
+            min_deg = max((poi * 5) -20, 0)
+            max_deg = min((poi * 5) + 20, 60)
             for degree in range(min_deg, max_deg + 1, 5):
                 with lock:
                     while passedStep != 0:
                         pass
                 set_angle(degree)
                 curDeg = degree
-                time.sleep(0.3)
+                #time.sleep(0.1)
                 with lock:
                     passedStep = 1
-                time.sleep(0.1)
-
+                    pass
+                time.sleep(0.045)
+            
+            #samePoiCounter = samePoiCounter + 1
+            #if samePoiCounter == 5:
+                #with lock:
+                    #searching = 1
+                    #samePoiCounter = 0
+                    #pass
+            
 # --- Main Program ---
 
 try:
