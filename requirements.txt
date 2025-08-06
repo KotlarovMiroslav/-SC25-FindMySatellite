@@ -1,1 +1,7 @@
 numpy
+pyserial
+RPi.GPIO
+
+included in Python but still required:
+threading
+time
