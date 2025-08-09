@@ -1,82 +1,28 @@
-from Integrators import *
+from Integrators import Verlet_3D
 import matplotlib.pyplot as plt
-from numpy import pi
 import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
 
 if __name__ == "__main__":
+    # Circular orbit setup
+    pos_0 = [7000.0, 0.0, 0.0]   # [km]
+    vel_0 = [0.0, 7.546, 0.0]    # [km/s] — circular velocity at 7000 km
 
-    '''
+    sim_param = [0.0, 6000.0, 10000]  # [start, stop, steps]
+    body_param = [1.0, 0.0]  # unused here, kept for compatibility
 
-    # Parameters for calling the Euler integrator
-    x0 = 1.0 # initial position
-    v0 = 0.0 # initial velocity
-    t_i = 0.0 # Initial time
-    t_f = 4.0*np.pi # Final time
-    Npoints = 10000 # Number of points
+    time, pos, vel = Verlet_3D(pos_0, vel_0, body_param, sim_param)
 
-    # Call the Euler integrator with the needed inputs and record the outptus
-    time, pos_E, vel_E = Euler_Solver( x0 , v0 , t_i , t_f , Npoints )
+    # Plot in 3D
+    x, y, z = pos[:, 0], pos[:, 1], pos[:, 2]
 
-    # Call the Verlet integrator with the needed inputs and record the outptus
-    time, pos_V, vel_V = Verlet_Solver( x0 , v0 , t_i , t_f , Npoints )
-
-    # The real solution which we know because it's analytically solvable
-    real_pos = np.cos( time )
-
-    # Make a plot comparing the two
-    fig, ax = plt.subplots( )
-
-    plt.plot( time , real_pos , color = "green" , label = "Real" , linewidth = 2 )
-    plt.scatter( time , pos_E , color = "red" , label = "Euler" , linewidth = 2 )
-    plt.scatter( time , pos_V , color = "blue" , label = "Verlet" , linewidth = 2 )
-    
-    plt.grid( )
-    plt.xlabel( "Time [sec]" )
-    plt.ylabel( "Position [m]" )
-    plt.legend( loc = "lower right" )
-    plt.show( )
-
-    # Make a plot with the error
-    fig, ax = plt.subplots( )
-    err_E = np.zeros( len( time ) )
-    err_V = np.zeros( len( time ) )
-
-    for i in range( 0 , len( time ) ):
-        # Compute relative error point by point in [%]
-        err_E[ i ] = abs( ( real_pos[ i ] - pos_E[ i ] )/real_pos[ i ] ) * 100.0
-        err_V[ i ] = abs( ( real_pos[ i ] - pos_V[ i ] )/real_pos[ i ] ) * 100.0
-
-    plt.plot( time , err_E , color = "red" , label = "Euler Error" , linewidth = 2 )
-    plt.plot( time , err_V , color = "blue" , label = "Verlet Error" , linewidth = 2 )
-
-    
-    plt.grid( )
-    plt.xlabel( "Time [sec]" )
-    plt.ylabel( "Position Error [%]" )
-    plt.legend( loc = "lower right" )
-    plt.yscale( "log" )
-    plt.show( )
-    '''
-
-    pos_0 = [ 0 , 0]
-    vel_0 = [ 2.0 , 30.0 ]
-    body_param = [ 1.0 , 0.0 ]
-    sim_param = [ 0.0 , 5.0 , 100 ]
-
-    time, pos, vel = Verlet_2D( pos_0 , vel_0 , body_param , sim_param )
-
-    v_x_0 = vel_0[ 0 ]*np.cos( vel_0[ 1 ]*np.pi/180.0 )
-    v_y_0 = vel_0[ 0 ]*np.sin( vel_0[ 1 ]*np.pi/180.0 )
-
-    pos_x_r = v_x_0*time + pos_0[ 0 ]
-    pos_y_r = v_y_0*time + pos_0[ 1 ] - 0.5*g_const*time*time
-
-    fig, ax = plt.subplots( )
-
-    plt.plot( pos_x_r , pos_y_r , color = "green" , label = r"Real, $\beta = 0$" , linewidth = 2 )
-
-    plt.grid( )
-    plt.xlabel( "Time [sec]" )
-    plt.ylabel( "Position [m]" )
-    plt.legend( loc = "lower right" )
-    plt.show( )
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot(x, y, z, label='Orbit Path')
+    ax.set_xlabel("X [km]")
+    ax.set_ylabel("Y [km]")
+    ax.set_zlabel("Z [km]")
+    ax.set_title("3D Orbit Trajectory")
+    ax.legend()
+    plt.grid(True)
+    plt.show()

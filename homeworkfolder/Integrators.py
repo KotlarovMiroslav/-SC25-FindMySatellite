@@ -137,36 +137,37 @@ def Ballistic_RHS( beta , mass , pos , vel ):
     # pos
     # vel
 
-def Verlet_2D( pos_0 , vel_0 , body_param , sim_param ):
+mu = 398600.4418  # [km^3/s^2]
 
-    mass = body_param[ 0 ]
-    beta = body_param[ 1 ]
+def Orbit_RHS(pos, vel):
+    r = np.linalg.norm(pos)
+    acc = -mu * pos / r**3
+    return vel, acc
 
-    t_i = sim_param[ 0 ]
-    t_f = sim_param[ 1 ]
-    Npoints = sim_param[ 2 ]
+def Verlet_3D(pos_0, vel_0, body_param, sim_param):
+    t_i, t_f, Npoints = sim_param
+    dt = (t_f - t_i) / (Npoints - 1)
+    time = np.linspace(t_i, t_f, Npoints)
 
-    dt = ( t_f - t_i )/( Npoints - 1.0 ) 
-    time = np.linspace( t_i , t_f , Npoints )
+    pos = np.zeros((Npoints, 3))
+    vel = np.zeros((Npoints, 3))
 
-    pos = np.zeros( ( 2 , Npoints ) ) # pos0 is x, pos1 is y
-    vel = np.zeros( ( 2 , Npoints ) ) # vel0 is x, vel1 is y
+    # Assign initial conditions directly (position and velocity)
+    pos[0] = pos_0
+    vel[0] = vel_0
 
-    pos[ 0 ][ 0 ] = pos_0[ 0 ] # Vx0 = 0
-    pos[ 1 ][ 0 ] = pos_0[ 1 ] # Vy0 = 0
+    for i in range(Npoints - 1):
+        # First half-step velocity
+        _, acc = Orbit_RHS(pos[i], vel[i])
+        vel_half = vel[i] + acc * dt / 2.0
 
-    vel[ 0 ][ 0 ] = vel_0[ 0 ]*np.cos( vel_0[ 1 ]*np.pi/180.0) # Vx0 = 0
-    vel[ 1 ][ 0 ] = vel_0[ 1 ]*np.sin( vel_0[ 1 ]*np.pi/180.0) # Vy0 = 0
+        # Full-step position
+        pos[i + 1] = pos[i] + vel_half * dt
 
-    for i in range(0, Npoints - 1):
-        rhs_pos, rhs_vel = Ballistic_RHS(beta, mass, pos[:, i], vel[:, i])
-        vel_half = vel[:, i] + rhs_vel*dt/2.0
+        # Acceleration at new position
+        _, acc = Orbit_RHS(pos[i + 1], vel_half)
 
-        rhs_pos, rhs_vel = Ballistic_RHS(beta, mass, pos[:, i], vel_half)
-        pos[:, i + 1] = pos[:, i] + rhs_pos*dt
+        # Full-step velocity
+        vel[i + 1] = vel_half + acc * dt / 2.0
 
-        rhs_pos, rhs_vel = Ballistic_RHS(beta, mass, pos[:, i + 1], vel_half)
-        vel[:, i + 1] = vel_half + rhs_vel*dt/2.0
-
-
-    return time , pos , vel
+    return time, pos, vel
