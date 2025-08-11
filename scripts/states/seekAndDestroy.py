@@ -48,11 +48,37 @@ class TrackState(State):
         set_angle(self.cur_deg)
         time.sleep(0.1)
 
+        # # LIDAR reading
+        # try:
+        #     reading = data_formatter(self.ser.read(9))
+        #     print(f"[TRACK] Scan@{self.cur_deg}° = {reading}")
+        # except Exception:
+        #     pass  # ignore bad reads
         # LIDAR reading
         try:
             reading = data_formatter(self.ser.read(9))
             print(f"[TRACK] Scan@{self.cur_deg}° = {reading}")
+
+            # === Optional: inline re-detection logic ===
+            baseline = dataOutput[int(self.cur_deg / SCAN_STEP)]
+            diff = abs(reading - baseline)
+
+            if diff >= LIDAR_DIFF_THRESHOLD:
+                self.detect_counter += 1
+                if self.detect_counter >= 3:
+                    poi = int(self.cur_deg / SCAN_STEP)  # update POI to this position
+                    self.detect_counter = 0
+                    print(f"[TRACK] POI updated to {poi * SCAN_STEP}°")
+            else:
+                self.detect_counter = 0
+            # === end re-detection ===
+
         except Exception:
             pass  # ignore bad reads
+
+        # Always recalc scan bounds after possible poi change
+        min_deg = max((poi * SCAN_STEP) - 15, 0)
+        max_deg = min((poi * SCAN_STEP) + 15, SCAN_MAX_DEG)
+
 
         return self.name
