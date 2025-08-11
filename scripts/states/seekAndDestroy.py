@@ -1,5 +1,9 @@
+from utils import set_angle
+from globalsConfig import *
+from main import *
+
 def seekAndDestroy():
-    global passedStep, lock, curDeg, searching, dataOutput, poi
+    global passedStep, lock, curDeg, searching, dataOutput, poi, globalReading
     #samePoiCounter = 0
     #if (poi == lastPoi):
         #if(samePoiCounter == 3):
@@ -49,3 +53,14 @@ def seekAndDestroy():
                     #searching = 1
                     #samePoiCounter = 0
                     #pass
+            min_poi = max(poi - 3, 2)
+            max_poi = min(poi + 2, len(dataOutput) - 2)
+            baseline = dataOutput[curPos]
+            diff = abs(globalReading - baseline)
+            if diff > 100:
+                print(f"Scan:{globalReading},Base: {baseline} ,Diff:{diff}")
+                poi = curPos
+                print(f"POI SHIFTED — New center: {poi*5}°")
+                curPos += 1
+            if curPos > max_poi:
+                curPos = min_poi

@@ -1,11 +1,17 @@
+from globalsConfig import *
+from utils import data_formatter
+
 def run_lidar():
-    global dataOutput, passedStep, lock, envScanned, curDeg, searching, poi
+    global dataOutput, passedStep, lock, envScanned, curDeg, searching, poi, globalReading
     ser = serial.Serial("/dev/serial0", 115200)
     curPos = 0
 
     while True:
         try:
             reading = data_formatter(ser.read(9))
+            with lock:
+                globalReading = reading
+                pass
         except Exception:
             continue  # Skip corrupted reads
 
@@ -16,24 +22,12 @@ def run_lidar():
                         curPos = 0
                     baseline = dataOutput[curPos]
                     diff = abs(reading - baseline)
-                    if diff > 65:
+                    if diff > 100:
                         searching = 0
                         poi = curPos
                         print(f"OBJECT DETECTED at {poi*5}°")
                     else:
                         curPos += 1
-                else:
-                    min_poi = max(poi - 3, 2)
-                    max_poi = min(poi + 2, len(dataOutput) - 2)
-                    baseline = dataOutput[curPos]
-                    diff = abs(reading - baseline)
-                    if diff > 65:
-                        print(f"Scan:{reading},Base: {baseline} ,Diff:{diff}")
-                        poi = curPos
-                        print(f"POI SHIFTED — New center: {poi*5}°")
-                    curPos += 1
-                    if curPos > max_poi:
-                        curPos = min_poi
                 passedStep = 0
 
             elif passedStep == 1:

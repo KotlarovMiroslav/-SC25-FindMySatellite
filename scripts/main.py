@@ -1,7 +1,8 @@
 import threading
-import RPi.GPIO as GPIO
+from globalsConfig import GPIO
 from states import runLidar, runServo, seekAndDestroy
 
+#Set up the pins of the raspberry
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(18, GPIO.OUT)
@@ -26,4 +27,6 @@ if __name__ == "__main__":
         t3.join()
 
     except KeyboardInterrupt:
-        print("Shutting down...")
+        pwm.stop()
+        GPIO.cleanup()
+        print("done")

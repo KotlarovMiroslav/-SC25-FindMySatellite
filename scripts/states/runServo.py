@@ -1,3 +1,6 @@
+from utils import set_angle
+from globalsConfig import *
+from main import *
 def run_servo():
     global passedStep, lock, curDeg, searching
     try:
