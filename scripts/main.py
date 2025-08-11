@@ -1,7 +1,9 @@
 import threading
 from globalsConfig import GPIO
-from states import runLidar, runServo, seekAndDestroy
-
+from states.runLidar import SearchState
+from states.runServo import ScanState
+from states.seekAndDestroy import TrackState
+from utils.classes import Operator
 #Set up the pins of the raspberry
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(17, GPIO.OUT)
@@ -11,21 +13,15 @@ pwm.start(0)
 
 if __name__ == "__main__":
     try:
-        # Create threads for each state
-        t1 = threading.Thread(target=runLidar)
-        t2 = threading.Thread(target=runServo)
-        t3 = threading.Thread(target=seekAndDestroy)
-
-        # Start them
-        t1.start()
-        t2.start()
-        t3.start()
-
-        # Keep main thread alive
-        t1.join()
-        t2.join()
-        t3.join()
-
+        op = Operator(
+            states={
+                "SEARCH": SearchState(),
+                "TRACK": TrackState(),
+                "SCAN": ScanState()
+            },
+            start_state="SEARCH"
+        )
+        op.run()
     except KeyboardInterrupt:
         pwm.stop()
         GPIO.cleanup()
