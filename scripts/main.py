@@ -9,9 +9,9 @@ if __name__ == "__main__":
     try:
         op = Operator(
             states={
-                "SEARCH": SearchState(),
-                "TRACK": TrackState(),
-                "SCAN": ScanState()
+                "SEARCH": SearchState.execute(),
+                "TRACK": TrackState.execute(),
+                "SCAN": ScanState.execute()
             },
             start_state="SEARCH"
         )
