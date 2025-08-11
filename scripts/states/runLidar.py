@@ -1,3 +1,4 @@
+# states/search_state.py
 import serial
 import time
 from utils import State
@@ -11,6 +12,7 @@ class SearchState(State):
         self.cur_deg = 0
         self.cur_pos = 0
         self.baseline_scan_done = False
+        self.detect_counter = 0  # new: consecutive detection counter
 
     def execute(self):
         global dataOutput, poi, searching
@@ -25,7 +27,6 @@ class SearchState(State):
         try:
             reading = data_formatter(self.ser.read(9))
         except Exception:
-            # If bad read, skip this cycle
             self.cur_deg += SCAN_STEP
             return self.name
 
@@ -47,10 +48,16 @@ class SearchState(State):
         diff = abs(reading - baseline)
 
         if diff >= LIDAR_DIFF_THRESHOLD:
-            searching = 0
-            poi = self.cur_pos
-            print(f"[SEARCH] OBJECT DETECTED at {poi * SCAN_STEP}°")
-            return "TRACK"
+            self.detect_counter += 1
+            print(f"[SEARCH] Detection {self.detect_counter}/3 at {self.cur_deg}° (diff {diff})")
+            if self.detect_counter >= 3:  # must detect 3 times in a row
+                searching = 0
+                poi = self.cur_pos
+                self.detect_counter = 0
+                print(f"[SEARCH] OBJECT DETECTED at {poi * SCAN_STEP}°")
+                return "TRACK"
+        else:
+            self.detect_counter = 0
 
         self.cur_pos += 1
         self.cur_deg += SCAN_STEP
