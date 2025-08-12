@@ -89,21 +89,21 @@
 
 
 import time
+import serial
 from utils import State
 from globalsConfig import *
-from utils import set_angle
+from utils import data_formatter, set_angle
 
 class TrackState(State):
     def __init__(self):
         super().__init__("TRACK")
-        self.cur_deg = 0
-        self.scan_direction = 1
+        self.ser = serial.Serial(SERIAL_PORT, SERIAL_BAUDRATE)
         self.same_poi_counter = 0
         self.last_poi = None
         self.last_switch_time = time.time()
 
     def execute(self):
-        global poi, searching, latest_distance
+        global poi, searching, baseline_data
 
         cooldown_active = (time.time() - self.last_switch_time) < 2
 
@@ -114,34 +114,53 @@ class TrackState(State):
             self.same_poi_counter = 0
         self.last_poi = poi
 
-        # Lost target rule
+        # Lost target
         if not cooldown_active and self.same_poi_counter >= 10:
             print("[TRACK] Lost target — switching to SEARCH")
             searching = True
             self.last_switch_time = time.time()
             return "SEARCH"
 
-        # Scan around POI
+        # Define sweep limits
         min_deg = max((poi * SCAN_STEP) - 15, 0)
         max_deg = min((poi * SCAN_STEP) + 15, SCAN_MAX_DEG)
 
-        if self.scan_direction == 1 and self.cur_deg >= max_deg:
-            self.scan_direction = -1
-        elif self.scan_direction == -1 and self.cur_deg <= min_deg:
-            self.scan_direction = 1
+        # Sweep max → min
+        for degree in range(max_deg, min_deg - SCAN_STEP, -SCAN_STEP):
+            set_angle(degree)
+            time.sleep(0.05)
 
-        self.cur_deg += self.scan_direction * SCAN_STEP
-        set_angle(self.cur_deg)
-        time.sleep(0.05)
+            try:
+                reading = data_formatter(self.ser.read(9))
+            except Exception:
+                continue
 
-        # Check for object shift
-        with lock:
-            distance = latest_distance
-        if distance is not None:
-            baseline = baseline_data[self.cur_deg // SCAN_STEP]
-            diff = abs(distance - baseline)
+            baseline = baseline_data[degree // SCAN_STEP]
+            diff = abs(reading - baseline)
+            print(f"[TRACK] Scan@{degree}° = {reading} (diff {diff})")
+
             if diff >= LIDAR_DIFF_THRESHOLD:
-                poi = self.cur_deg // SCAN_STEP
+                poi = degree // SCAN_STEP
                 print(f"[TRACK] POI shifted to {poi * SCAN_STEP}°")
+                return self.name  # restart oscillation immediately
+
+        # Sweep min → max
+        for degree in range(min_deg, max_deg + SCAN_STEP, SCAN_STEP):
+            set_angle(degree)
+            time.sleep(0.05)
+
+            try:
+                reading = data_formatter(self.ser.read(9))
+            except Exception:
+                continue
+
+            baseline = baseline_data[degree // SCAN_STEP]
+            diff = abs(reading - baseline)
+            print(f"[TRACK] Scan@{degree}° = {reading} (diff {diff})")
+
+            if diff >= LIDAR_DIFF_THRESHOLD:
+                poi = degree // SCAN_STEP
+                print(f"[TRACK] POI shifted to {poi * SCAN_STEP}°")
+                return self.name
 
         return self.name
