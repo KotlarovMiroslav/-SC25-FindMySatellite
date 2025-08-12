@@ -5,9 +5,11 @@ import threading
 import threading
 curDeg = 1
 passedStep = 0
-objectSpotted = 0
-envScanned = 0
-searching = 1
+latest_distance = None
+baseline_data = []
+objectSpotted = 0 
+envScanned = 0 #boolean false by default
+searching = 1 #boolean true by default
 poi = -1
 dataOutput = []
 globalReading = 0
