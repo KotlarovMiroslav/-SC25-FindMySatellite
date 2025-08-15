@@ -143,7 +143,8 @@ class TrackState(State):
                 poi = degree // SCAN_STEP
                 print(f"[TRACK] POI shifted to {poi * SCAN_STEP}°")
                 return self.name  # restart oscillation immediately
-
+        min_deg = max((poi * SCAN_STEP) - 15, 0)
+        max_deg = min((poi * SCAN_STEP) + 15, SCAN_MAX_DEG)
         # Sweep min → max
         for degree in range(min_deg, max_deg + SCAN_STEP, SCAN_STEP):
             set_angle(degree)
@@ -162,5 +163,6 @@ class TrackState(State):
                 poi = degree // SCAN_STEP
                 print(f"[TRACK] POI shifted to {poi * SCAN_STEP}°")
                 return self.name
-
+        min_deg = max((poi * SCAN_STEP) - 15, 0)
+        max_deg = min((poi * SCAN_STEP) + 15, SCAN_MAX_DEG)
         return self.name
