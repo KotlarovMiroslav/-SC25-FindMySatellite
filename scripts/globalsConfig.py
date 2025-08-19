@@ -2,7 +2,7 @@ import serial
 import time
 import RPi.GPIO as GPIO
 import threading
-import threading
+
 curDeg = 1
 passedStep = 0
 latest_distance = None
@@ -29,3 +29,9 @@ SCAN_STEP = 5
 
 SERIAL_PORT = "/dev/serial0"
 SERIAL_BAUDRATE = 115200
+
+# Global variables for GUI
+readyToPlot = 0 #boolean false by default
+az = 0
+el = 0
+scanLength = 0
