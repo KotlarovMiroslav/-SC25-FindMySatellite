@@ -1,5 +1,6 @@
 import threading
 from time import sleep
+from time import time
 import sys
 import os
 import stepper
@@ -66,6 +67,7 @@ while notScannedEnv:   #SCAN ENV
 i = 0
 droneNotFound = 1
 curIteration = 0
+curTime = time()
 while notScannedEnv == 0: # COMPARE ENV
     #print(gv.latest_distance)
     sleep(1)
@@ -101,7 +103,7 @@ while notScannedEnv == 0: # COMPARE ENV
                     with gv.lock:
                         gv.target_found = 1
                         pass
-                    gv.det_pos.append([gv.stepper_pos, gv.servo_pos,gv.latest_distance])
+                    gv.det_pos.append([gv.stepper_pos, gv.servo_pos,gv.latest_distance, time()])
                     break
 
             if droneNotFound == 0:
