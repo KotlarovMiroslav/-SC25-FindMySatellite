@@ -2,7 +2,7 @@ import serial
 import time
 import RPi.GPIO as GPIO
 import threading
-import threading
+
 curDeg = 1
 passedStep = 0
 latest_distance = None
@@ -23,9 +23,29 @@ pwm.start(0)
 
 lock = threading.Lock()
 
-SCAN_MAX_DEG,LIDAR_DIFF_THRESHOLD = 60  
+SCAN_MAX_DEG = 60  
 SCAN_STEP = 5
-# LIDAR_DIFF_THRESHOLD = 60
+LIDAR_DIFF_THRESHOLD = 60
 
 SERIAL_PORT = "/dev/serial0"
 SERIAL_BAUDRATE = 115200
+
+# Global variables for GUI
+readyToPlot = 0 #boolean false by default
+az = 0
+el = 0
+scanLength = 0
+
+
+
+
+
+
+
+
+
+
+stepper_pos = 0
+servo_pos = 0
+ready_state = 0 #boolean
+target_found = 0 #boolean

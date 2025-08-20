@@ -49,3 +49,4 @@ def stepper(ANGLE):
         sleep(delay)
 
     GPIO.output(ENABLE_PIN, GPIO.HIGH)
+

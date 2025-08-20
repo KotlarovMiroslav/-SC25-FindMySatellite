@@ -1,5 +1,6 @@
 import serial
 from globalsConfig import *
+import globalsConfig as gv
 from utils import data_formatter
 
 def lidar_reader():
@@ -9,6 +10,7 @@ def lidar_reader():
         try:
             reading = data_formatter(ser.read(9))
             with lock:
-                latest_distance = reading
+                gv.latest_distance = reading
+                pass
         except Exception:
             continue

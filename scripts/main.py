@@ -7,6 +7,7 @@ from states.runServo import ScanState
 from states.seekAndDestroy import TrackState
 from utils.classes import Operator
 from globalsConfig import *
+from utils import lidar_reader
 #sys.path.append(os.path.dirname(os.path.abspath(__file__))) #remove "#"from the begining before flight
 if __name__ == "__main__":
     try:
