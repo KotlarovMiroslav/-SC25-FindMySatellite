@@ -4,10 +4,10 @@ import create_tle as tc
 
 # Demo waypoints (azimuth, elevation, range, time)
 waypoints = np.array([
-    [0,     90,     180],  # azimuth degrees
+    [0,     90,   180],  # azimuth degrees
     [0,     0,    0],  # elevation degrees
-    [200,   200,    200],  # distance in cm
-    [5000,  10000,  15000]  # time in ms
+    [200,   200,   200],  # distance in cm
+    [5000,  10000, 15000]  # time in ms
 ])
 
 # Create TLE

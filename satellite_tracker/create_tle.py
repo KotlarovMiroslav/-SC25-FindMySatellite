@@ -9,6 +9,7 @@ POINT_NUMBER = 3
 TIMESTEP_NUMBER = 2
 MU_EARTH = 398600.4418  # km^3/s^2, standard gravitational parameter
 R_EARTH = 6378.137      # km, mean Earth radius
+TIME_SCALING = 200
 
 #  z-axis unit vector k vector
 k = np.array([0, 0, 1])
@@ -44,17 +45,18 @@ def read_points(waypoints):
 
     return phi_rad, theta_rad, distance_sat, time
 
-
 # each time step is the difference between consecutive time readings
 # needed for the difference in time of the velocity vector
 # naming convention -> first time step is between first reading and second reading
 # Output: Timestep in seconds
+# CHANGE: I adjusted a scaling Factor, to get the velocity more real
 
 def calculateTimestep(time):
 
     timestep = np.zeros(len(time) - 1)
     for i in range(len(timestep)):
         timestep[i] = time[i + 1] - time[i]
+        timestep[i] = timestep[i] * TIME_SCALING
     return timestep
 
 # convert given coordinate system (ECI) from a sperical one to cartesian
@@ -75,7 +77,17 @@ def convertKOS(phi_rad, theta_rad, distance):
 def calcVelocity(point_vector, timestep):
 
     # use first and last coordinate pointvector [:, 2] -[:,0] 
-    vel = (point_vector[:,2] - point_vector[:,0]) / timestep[0]
+    #vel = (point_vector[:,2] - point_vector[:,0]) / timestep[0]
+
+    # use first and last coordinate pointvector [:, 2] -[:,0] 
+    #vel = (point_vector[:,2] - point_vector[:,0]) / (timestep[0] + timestep[1])
+
+    dist1 = point_vector[:,1] - point_vector[:,0]
+    dist2 = point_vector[:,2] - point_vector[:,1]
+    total_distance = dist1 + dist2
+    total_time = timestep[0] + timestep[1]
+    vel = total_distance / total_time
+
     return vel
 
 # calculate the angular Momentum 
