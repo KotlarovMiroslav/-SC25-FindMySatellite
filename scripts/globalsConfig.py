@@ -31,6 +31,7 @@ SERIAL_PORT = "/dev/serial0"
 SERIAL_BAUDRATE = 115200
 
 # Global variables for GUI
+det_pos = []
 readyToPlot = 0 #boolean false by default
 az = 0
 el = 0

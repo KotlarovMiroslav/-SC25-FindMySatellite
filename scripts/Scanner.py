@@ -13,7 +13,12 @@ size_of_array = 5
 sleep(3) # Wait for the GPIO to initialize properly
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__))) #remove "#"from the begining before flight
-
+def follower():
+    while True:
+        print(gv.servo_pos)
+        sleep(1)
+t_follower = threading.Thread(target=follower, daemon=True)
+t_follower.start()
 t_piCon = threading.Thread(target=pi_connection, daemon=True)
 t_piCon.start()
 t_lidar = threading.Thread(target=lidar_reader, daemon=True)
@@ -29,7 +34,7 @@ readings = [[0 for x in range(size_of_array)] for y in range(3)]
 curIteration = 0
 
 set_angle(185)
-gv.servo_pos = 85
+gv.servo_pos = 0
 sleep(1)
 while notScannedEnv:   #SCAN ENV
     #print(gv.latest_distance)
@@ -70,6 +75,8 @@ while notScannedEnv == 0: # COMPARE ENV
         stepper.stepper(-270)
         gv.stepper_pos += -270
         GPIO.cleanup()
+        for curPos in gv.det_pos:
+            print(curPos)
         sys.exit(0)
     else:
         while droneNotFound:
@@ -78,15 +85,15 @@ while notScannedEnv == 0: # COMPARE ENV
             for curAngle in range (0, size_of_array):
                 if(curAngle == 0):
                     set_angle(100 + curAngle * 85/size_of_array)
-                    gv.servo_pos += curAngle * 85/size_of_array
+                    gv.servo_pos = curAngle * 85/size_of_array
                     sleep(0.4)
                 else:
                     set_angle(100 + curAngle * 85/size_of_array)
-                    gv.servo_pos += curAngle * 85/size_of_array
+                    gv.servo_pos = curAngle * 85/size_of_array
                     sleep(0.08)
                 
-                print(curIteration, ":curIteration  curAngle:" ,curAngle, "read: ", gv.latest_distance)
-                print(abs(gv.latest_distance - readings[curIteration][curAngle]))
+                #print(curIteration, ":curIteration  curAngle:" ,curAngle, "read: ", gv.latest_distance)
+                #print(abs(gv.latest_distance - readings[curIteration][curAngle]))
                 if(abs(gv.latest_distance - readings[curIteration][curAngle]) > 70 and abs(gv.latest_distance - readings[curIteration][curAngle]) < 60000 and gv.latest_distance < 350):
                     print("Object Spotted at angle: ", curAngle*17)
                     print("curAngle: ", curAngle,"curIteration:", curIteration ,"compared to readings: ", readings[curIteration][curAngle])
@@ -94,6 +101,7 @@ while notScannedEnv == 0: # COMPARE ENV
                     with gv.lock:
                         gv.target_found = 1
                         pass
+                    gv.det_pos.append([gv.stepper_pos, gv.servo_pos,gv.latest_distance])
                     break
 
             if droneNotFound == 0:
@@ -102,24 +110,25 @@ while notScannedEnv == 0: # COMPARE ENV
             for curAngle in range (size_of_array-1, -1,-1):
                 if(curAngle == 0):
                     set_angle(100 + curAngle * 85/size_of_array)
-                    gv.servo_pos -= curAngle * 85/size_of_array
+                    gv.servo_pos = curAngle * 85/size_of_array
                     sleep(0.4)
                 else:
                     set_angle(100 + curAngle * 85/size_of_array)
-                    gv.servo_pos -= curAngle * 85/size_of_array
+                    gv.servo_pos = curAngle * 85/size_of_array
                     sleep(0.08)
-                print(abs(gv.latest_distance - readings[curIteration][curAngle]))
+                #print(abs(gv.latest_distance - readings[curIteration][curAngle]))
                 if(abs(gv.latest_distance - readings[curIteration][curAngle]) > 70 and abs(gv.latest_distance - readings[curIteration][curAngle]) < 60000 and gv.latest_distance < 350):
                     print("Object Spotted at angle: ", curAngle*17)
                     droneNotFound = 0
                     with gv.lock:
                         gv.target_found = 1
                         pass
+                        gv.det_pos.append([gv.stepper_pos, gv.servo_pos,gv.latest_distance])
                     break
             
         i += 1 
         set_angle(185)
-        gv.servo_pos = 85
+        gv.servo_pos = 0
         stepper.stepper(90)
         gv.stepper_pos += 90
         print("Drone Found")
