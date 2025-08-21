@@ -5,8 +5,6 @@ import math
 
 # Function to take in at least 3 waypoints and create a TLE out of it
 
-POINT_NUMBER = 3
-TIMESTEP_NUMBER = 2
 MU_EARTH = 398600.4418  # km^3/s^2, standard gravitational parameter
 R_EARTH = 6378.137      # km, mean Earth radius
 TIME_SCALING = 200
