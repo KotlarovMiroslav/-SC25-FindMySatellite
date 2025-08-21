@@ -59,6 +59,7 @@ def calculateTimestep(time):
 
 # convert given coordinate system (ECI) from a sperical one to cartesian
 # Output: Array of three waypoints with x,y,z each x = [0,:], y = [1,:], z = [2,:]
+# 
 
 def convertKOS(phi_rad, theta_rad, distance):
     print(distance)
@@ -115,6 +116,7 @@ def calcEccentricity(point_vector, velocity, angular_momentum):
     return ecc, eccentricity_vector
 
 # calculate the semi-major axis of the orbit
+# output in kilometers
 
 def calcSemiMajorAxis(point_vector, velocity):
 
@@ -127,7 +129,7 @@ def calcSemiMajorAxis(point_vector, velocity):
     return sma
 
 # calculate RAAN (right ascension of ascending node)
-# output size
+# output size radian
 
 def calcRAAN(angular_momentum):
 
@@ -138,6 +140,7 @@ def calcRAAN(angular_momentum):
     return raan
 
 # calculate argument of periapsis
+# output angle in radians
 
 def calcArgumentOfPeriapsis(eccentricity_vector, angular_momentum):
     k = np.array([0, 0, 1])
@@ -152,6 +155,7 @@ def calcArgumentOfPeriapsis(eccentricity_vector, angular_momentum):
     return aop
 
 # calculate true anomaly
+# output in radians
 
 def calcTrueAnomaly(point_vector, eccentricity_vector):
 
@@ -163,6 +167,7 @@ def calcTrueAnomaly(point_vector, eccentricity_vector):
     return ta
 
 # calculate mean motion - for now only circular orbit
+# pitput radians per minute, since then getting revs/day in the satrec function
 
 def calcMeanMotion(sma):
     # sma is radius
@@ -226,11 +231,11 @@ def calcTLE(waypoints):
 
     foundmysatellite = Satrec()
     foundmysatellite.sgp4init(
-        WGS72,           # gravity model
-        'i',             # 'a' = old AFSPC mode, 'i' = improved mode
+        WGS72,           # gravity model -> used the one from the example model, because our drone doesnt follow them anyway
+        'i',             # 'a' = old AFSPC mode, 'i' = improved mode -> always improved, bcause im old already
         69420,           # satnum: Satellite number
-        27626.2997,      # epoch: days since 1949 December 31 00:00 UT
-        0.0,             # bstar: drag coefficient (/earth radii)
+        27626.2997,      # epoch: days since 1949 December 31 00:00 UT -> now is 2025.08.20 07:11:38 UTC so 10:11:38 in Sofia
+        0.0,             # bstar: drag coefficient (/earth radii) -> considered zero because duhh
         0.0,             # ndot: ballistic coefficient (radians/minute^2)
         0.0,             # nddot: second derivative of mean motion (radians/minute^3)
         eccentricity,    # ecco: eccentricity
