@@ -10,7 +10,6 @@ import os
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(parent_dir)
 
-
 # Function to take in at least 3 waypoints and create a TLE out of it
 
 MU_EARTH = 398600.4418  # km^3/s^2, standard gravitational parameter
@@ -268,4 +267,3 @@ def calcTLE(waypoints):
     line1, line2 = exporter.export_tle(foundmysatellite)
 
     return line1, line2
-

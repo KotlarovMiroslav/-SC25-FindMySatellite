@@ -1,6 +1,15 @@
 # Demo File to create TLE from waypoints
 import numpy as np
 import create_tle as tc
+import sys
+import os
+import globalsConfig as gv
+
+
+# get the parent directory of utils
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+
 
 # Demo waypoints (azimuth, elevation, range, time)
 waypoints = np.array([
@@ -10,10 +19,17 @@ waypoints = np.array([
     [5000,  10000, 15000]  # time in ms
 ])
 
+waypoints = np.array([
+    [gv.det_pos[0][2], gv.det_pos[0][4],gv.det_pos[0][6]],
+    [gv.det_pos[1][2], gv.det_pos[1][4],gv.det_pos[1][6]],
+    [gv.det_pos[2][2], gv.det_pos[2][4],gv.det_pos[2][6]],
+    [gv.det_pos[3][2], gv.det_pos[3][4],gv.det_pos[3][6]],
+])
+
 # Create TLE
 line1, line2 = tc.calcTLE(waypoints)
 
-with open("tle2.txt", "w") as f:
+with open("pi_tle.txt", "w") as f:
     f.write("DRONE\n")
     f.write(line1 + "\n")
     f.write(line2 + "\n")
