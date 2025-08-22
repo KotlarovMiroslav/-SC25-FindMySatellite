@@ -13,10 +13,10 @@ sys.path.append(parent_dir)
 
 # Demo waypoints (azimuth, elevation, range, time)
 waypoints = np.array([
-    [0,     90,   180],  # azimuth degrees
+    [0,     90,    180],  # azimuth degrees
     [0,     45,    0],  # elevation degrees
     [100,   100,   100],  # distance in cm
-    [5000,  10000, 15000]  # time in ms
+    [5,     10,    15]  # time in ms
 ])
 
 waypoints = np.array([

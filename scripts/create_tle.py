@@ -26,7 +26,7 @@ def read_points(waypoints):
     azimuth = waypoints[0, :]
     elevation = waypoints[1, :]
     distance_cm = waypoints[2, :]
-    time = waypoints[3, :]/1000             # make seconds out of the ms 
+    time = waypoints[3, :]             # make seconds out of the ms 
 
     # convert azimuth of stepper to take north as zero (-90 degrees)
     phi = azimuth - 90
