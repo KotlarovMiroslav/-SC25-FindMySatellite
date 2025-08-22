@@ -12,29 +12,34 @@ sys.path.append(parent_dir)
 
 
 # Demo waypoints (azimuth, elevation, range, time)
+'''
 waypoints = np.array([
     [0,     90,    180],  # azimuth degrees
     [0,     45,    0],  # elevation degrees
     [100,   100,   100],  # distance in cm
     [5,     10,    15]  # time in ms
 ])
+'''
 
-waypoints = np.array([
-    [gv.det_pos[0][2], gv.det_pos[0][4],gv.det_pos[0][6]],
-    [gv.det_pos[1][2], gv.det_pos[1][4],gv.det_pos[1][6]],
-    [gv.det_pos[2][2], gv.det_pos[2][4],gv.det_pos[2][6]],
-    [gv.det_pos[3][2], gv.det_pos[3][4],gv.det_pos[3][6]],
-])
+def gen_tle():
 
-# Create TLE
-line1, line2 = tc.calcTLE(waypoints)
+    waypoints = np.array([
+        [gv.det_pos[2][0], gv.det_pos[4][0],gv.det_pos[6][0]],
+        [gv.det_pos[2][1], gv.det_pos[4][1],gv.det_pos[6][1]],
+        [gv.det_pos[2][2], gv.det_pos[4][2],gv.det_pos[6][2]],
+        [gv.det_pos[2][3], gv.det_pos[4][3],gv.det_pos[6][3]],
+    ])
 
-with open("pi_tle.txt", "w") as f:
-    f.write("DRONE\n")
-    f.write(line1 + "\n")
-    f.write(line2 + "\n")
 
-print("tle.txt created successfully!")
+    # Create TLE
+    line1, line2 = tc.calcTLE(waypoints)
+
+    with open("pi_tle.txt", "w") as f:
+        f.write("DRONE\n")
+        f.write(line1 + "\n")
+        f.write(line2 + "\n")
+
+    print("tle.txt created successfully!")
 
 # Which Aspects to bullshit: 
     # ecc?
